@@ -1,5 +1,10 @@
-UGANDA NATURE — LOCAL PREVIEW 03
+LIVING UGANDA — PRELIMINARY WEBSITE
 
-Open index.html to view the website locally.
-Catalogue composition redesigned; four Uganda photographs integrated with visible credits.
-Earlier previews preserved. Species accounts remain examples. No deployment.
+The publication folder contains 1,901 searchable species entries.
+Open the published GitHub Pages website, or serve this folder through a local HTTP server. Opening HTML directly as a file may prevent the inventory from loading.
+
+Repository: https://github.com/arsenebaguma0-ux/living-uganda
+Dataset attribution: dataset-credits.html
+Photograph attribution: credits.html and linked collection credit pages.
+
+Edit and update the site through this repository. A GPT subscription is not required to keep GitHub Pages running.
