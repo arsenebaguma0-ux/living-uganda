@@ -1,0 +1,15 @@
+/* Shared lettering: technical display, measured labels, readable prose. */
+@font-face{font-family:Chakra;src:url('fonts/ChakraPetch-Light.ttf') format('truetype');font-weight:300;font-style:normal;font-display:swap}
+@font-face{font-family:Chakra;src:url('fonts/ChakraPetch-Regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:PlexMono;src:url('fonts/IBMPlexMono-Regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+:root{--display-font:Chakra,Arial,sans-serif;--label-font:PlexMono,monospace}
+body h1,body h2,body h3,body h1 em,body h2 em,body h3 em{font-family:var(--display-font);font-weight:300!important;letter-spacing:-.025em!important;font-style:normal}
+body h3{font-weight:400!important}
+body .brand,body header nav a,body button,body .button,body .outlinebutton,body .text-link,body .stage-link,body .named-species-link,body .atlas-next-links strong,body .collage-label strong{font-family:var(--display-font);font-weight:400;letter-spacing:.01em}
+body .eyebrow,body .stage-bar,body .chapterbar,body .openingmeta,body .atlas-bottom,body .atlas-chapters,body .atlas-story-top,body .atlas-story-path,body .collage-label>span,body .named-species-number,body .atlas-side-label,body .groupno,body figcaption{font-family:var(--label-font);font-weight:400;letter-spacing:.035em}
+body .eyebrow,body .stage-bar,body figcaption,body .collage-label>span{font-size:11px;line-height:1.6}
+body .searchrow input{font-family:Arial,sans-serif}
+body .atlas-hero-copy h1{font-family:var(--display-font);font-size:clamp(68px,10vw,144px);font-weight:300!important;line-height:1.05;letter-spacing:-.025em!important}
+body .atlas-hero-copy>p{font-family:var(--display-font);font-weight:400}
+body .named-species h3{font-weight:300!important}
+@media(max-width:750px){body .atlas-hero-copy h1{font-size:clamp(58px,15vw,110px)}body .atlas-story-path{font-size:10px}}
