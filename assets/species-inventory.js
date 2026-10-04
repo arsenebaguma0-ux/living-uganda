@@ -5,6 +5,7 @@
   let records=[], group='All', selected=null, ready=false, limit=24, hierarchy;
   const el=(tag,text,cls)=>{const node=document.createElement(tag);if(text)node.textContent=text;if(cls)node.className=cls;return node;};
   const normalise=value=>String(value||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[’']/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+  const groupAnchor=value=>'group-'+value.toLowerCase().replace(/[^a-z0-9]+/g,'-');
   const more=el('div','','inventory-pagination');results.after(more);
   function choose(node) {selected=node;limit=24;render();results.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}
   function branch(node, autoOpen=false) {
@@ -14,6 +15,7 @@
       button.addEventListener('click',()=>choose(node));return button;
     }
     const details=el('details','','classification-branch');
+    if(node.rank==='group')details.id=groupAnchor(node.label);
     const summary=el('summary');summary.append(el('span',node.label),el('small',(node.rank==='group'?'Organisms':node.rank)+' · '+node.ids.length));details.append(summary);
     let populated=false;
     details.addEventListener('toggle',()=>{
@@ -27,7 +29,7 @@
     document.querySelector('#classification-title').textContent=group==='All'?'Explore the branches of life.':'Browse '+group.toLowerCase()+'.';
     treeHost.replaceChildren();
     ClassificationTree.children(hierarchy).filter(node=>group==='All'||node.label===group).forEach(node=>treeHost.append(branch(node,group!=='All')));
-    if(!treeHost.childElementCount)treeHost.append(el('p','No entries in this group yet.'));
+    if(!treeHost.childElementCount){const message=el('p','No entries in this group yet.');message.id=groupAnchor(group);treeHost.append(message);}
   }
   function render() {
     if(!ready)return;
@@ -60,7 +62,7 @@
   }
   search.addEventListener('input',()=>{selected=null;limit=24;render();});
   document.querySelector('#search-form').addEventListener('submit',event=>{event.preventDefault();render();document.querySelector('#browse').scrollIntoView({block:'start'});});
-  function syncGroupRoute(){const url=new URL(location.href);if(group==='All')url.searchParams.delete('group');else url.searchParams.set('group',group);url.hash='browse';history.replaceState(null,'',url);}
+  function syncGroupRoute(){const url=new URL(location.href);if(group==='All')url.searchParams.delete('group');else url.searchParams.set('group',group);url.hash=group==='All'?'browse':groupAnchor(group);history.replaceState(null,'',url);}
   function bindFilter(button){button.addEventListener('click',()=>{group=button.dataset.filter;selected=null;limit=24;syncGroupRoute();drawTree();render();});}
   filters.forEach(bindFilter);
   document.querySelector('#classification-clear').addEventListener('click',()=>{selected=null;limit=24;render();});
@@ -73,7 +75,7 @@
   function alignInitialGroupAnchor(){
     if(anchorInterrupted||!ready)return;
     const id=location.hash.slice(1);
-    if(!['browse','plants-world','birds-world','mammals-world','small-world','fungi-world','fish-world','amphibians-world','reptiles-world'].includes(id))return;
+    if(!document.getElementById(id)?.matches('[id^="group-"]')&&!['browse','plants-world','birds-world','mammals-world','small-world','fungi-world','fish-world','amphibians-world','reptiles-world'].includes(id))return;
     requestAnimationFrame(()=>{if(!anchorInterrupted)document.getElementById(id)?.scrollIntoView({block:'start',behavior:'instant'});});
   }
   addEventListener('load',alignInitialGroupAnchor);
