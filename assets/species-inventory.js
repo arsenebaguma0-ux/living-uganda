@@ -16,12 +16,14 @@
     }
     const details=el('details','','classification-branch');
     if(node.rank==='group')details.id=groupAnchor(node.label);
-    const summary=el('summary');summary.append(el('span',node.label),el('small',(node.rank==='group'?'Organisms':node.rank)+' · '+node.ids.length));details.append(summary);
+    const summary=el('summary');summary.append(el('span',node.label),el('small',node.rank==='group'?'Group':node.rank));details.append(summary);
     let populated=false;
     details.addEventListener('toggle',()=>{
       if(!details.open||populated)return;populated=true;
       const body=el('div','','classification-children');
-      const view=el('button','View '+node.ids.length+' '+(node.ids.length===1?'organism':'organisms'),'classification-view');view.type='button';view.addEventListener('click',()=>choose(node));body.append(view);
+      if(node.rank==='group'||(['order','family','genus'].includes(node.rank)&&node.children.size>1)){
+        const view=el('button','See species','classification-view');view.type='button';view.setAttribute('aria-label','See species in '+node.label);view.addEventListener('click',()=>choose(node));body.append(view);
+      }
       ClassificationTree.children(node).forEach(child=>body.append(branch(child,autoOpen&&node.children.size===1)));details.append(body);
     });if(autoOpen)details.open=true;return details;
   }
@@ -38,7 +40,7 @@
     const exact=query?eligible.filter(r=>[r.scientificName,r.commonName,...(r.aliases||[]),...(r.localNames||[]).map(n=>n.name)].some(name=>normalise(name)===query)):[];
     const matches=exact.length?exact:eligible.filter(r=>tokens.every(t=>r.searchText.includes(t)));
     const browsing=!query&&!selected;
-    count.textContent=browsing?eligible.length+' organisms · Expand a branch to explore':matches.length+' matching '+(matches.length===1?'organism':'organisms')+' · '+Math.min(limit,matches.length)+' shown';
+    count.textContent=matches.length+' '+(query?'matching ':'')+'species currently in this catalogue';
     branchLabel.textContent=selected?'Selected: '+selected.path.map(p=>p[0]==='species'?selected.scientificName:(p[1]||p[0]+' not recorded')).join(' → '):'Browse by recorded classification, or search directly for a name.';
     results.replaceChildren();more.replaceChildren();
     empty.hidden=browsing||matches.length!==0;
@@ -57,7 +59,7 @@
       if(r.review==='Provisional identification')details.append(el('p','Identification uncertain'));
       card.append(details);results.append(card);
     });
-    if(!browsing&&matches.length>limit){const button=el('button','Show more organisms');button.type='button';button.addEventListener('click',()=>{limit+=24;render();});more.append(button);}
+    if(!browsing&&matches.length>limit){const button=el('button','Show more species');button.type='button';button.addEventListener('click',()=>{limit+=24;render();});more.append(button);}
     filters.forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.filter===group)));
   }
   search.addEventListener('input',()=>{selected=null;limit=24;render();});
