@@ -3,3 +3,5 @@
 .catalogue-page #plants-world,.catalogue-page #birds-world,.catalogue-page #mammals-world,.catalogue-page #small-world,.catalogue-page #fungi-world,.catalogue-page #fish-world,.catalogue-page #amphibians-world,.catalogue-page #reptiles-world{scroll-margin-top:120px}@media(max-width:750px){.catalogue-page #plants-world,.catalogue-page #birds-world,.catalogue-page #mammals-world,.catalogue-page #small-world,.catalogue-page #fungi-world,.catalogue-page #fish-world,.catalogue-page #amphibians-world,.catalogue-page #reptiles-world{scroll-margin-top:90px}}
 
 #classification-tree [id^="group-"]{scroll-margin-top:120px}@media(max-width:750px){#classification-tree [id^="group-"]{scroll-margin-top:90px}}
+
+.bird-preview-link{display:inline-block;margin:10px 0 20px;color:#edc844;font-size:14px}.bird-preview-link[hidden]{display:none}#species-results{scroll-margin-top:120px}

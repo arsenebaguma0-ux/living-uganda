@@ -29,6 +29,7 @@
   }
   function drawTree() {
     document.querySelector('#classification-title').textContent=group==='All'?'Explore the branches of life.':'Browse '+group.toLowerCase()+'.';
+    document.querySelector('#birds-tree-preview').hidden=group!=='Birds';
     treeHost.replaceChildren();
     ClassificationTree.children(hierarchy).filter(node=>group==='All'||node.label===group).forEach(node=>treeHost.append(branch(node,group!=='All')));
     if(!treeHost.childElementCount){const message=el('p','No entries in this group yet.');message.id=groupAnchor(group);treeHost.append(message);}
@@ -77,7 +78,7 @@
   function alignInitialGroupAnchor(){
     if(anchorInterrupted||!ready)return;
     const id=location.hash.slice(1);
-    if(!document.getElementById(id)?.matches('[id^="group-"]')&&!['browse','plants-world','birds-world','mammals-world','small-world','fungi-world','fish-world','amphibians-world','reptiles-world'].includes(id))return;
+    if(!document.getElementById(id)?.matches('[id^="group-"]')&&!['browse','species-results','plants-world','birds-world','mammals-world','small-world','fungi-world','fish-world','amphibians-world','reptiles-world'].includes(id))return;
     requestAnimationFrame(()=>{if(!anchorInterrupted)document.getElementById(id)?.scrollIntoView({block:'start',behavior:'instant'});});
   }
   addEventListener('load',alignInitialGroupAnchor);
@@ -90,6 +91,8 @@
     [...new Set(records.map(r=>r.group))].filter(g=>!filters.some(b=>b.dataset.filter===g)).forEach(g=>{const button=el('button',g,'filter');button.type='button';button.dataset.filter=g;document.querySelector('.filters').append(button);filters.push(button);bindFilter(button);});
     const requestedGroup=new URLSearchParams(location.search).get('group');
     if(requestedGroup&&filters.some(button=>button.dataset.filter===requestedGroup))group=requestedGroup;
+    const requestedName=new URLSearchParams(location.search).get('q');
+    if(requestedName)search.value=requestedName.slice(0,256);
     ready=true;drawTree();render();alignInitialGroupAnchor();
   }).catch(()=>{count.textContent='The inventory could not load. Reload the page or download the inventory below.';treeHost.replaceChildren();results.replaceChildren();empty.hidden=true;});
 })();
