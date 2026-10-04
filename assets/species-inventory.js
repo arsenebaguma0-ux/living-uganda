@@ -63,12 +63,25 @@
   filters.forEach(bindFilter);
   document.querySelector('#classification-clear').addEventListener('click',()=>{selected=null;limit=24;render();});
   document.querySelector('#reset').addEventListener('click',()=>{search.value='';group='All';selected=null;limit=24;drawTree();render();search.focus();});
+  // Restore a group anchor after the asynchronous inventory changes page height.
+  // Stop correcting once the visitor starts interacting with this page.
+  let anchorInterrupted=false;
+  for(const event of ['wheel','touchstart','pointerdown','keydown'])
+    addEventListener(event,()=>{anchorInterrupted=true;},{passive:true});
+  function alignInitialGroupAnchor(){
+    if(anchorInterrupted||!ready)return;
+    const id=location.hash.slice(1);
+    if(!['plants-world','birds-world','mammals-world','small-world','fungi-world','fish-world','amphibians-world','reptiles-world'].includes(id))return;
+    requestAnimationFrame(()=>{if(!anchorInterrupted)document.getElementById(id)?.scrollIntoView({block:'start',behavior:'instant'});});
+  }
+  addEventListener('load',alignInitialGroupAnchor);
+  addEventListener('hashchange',()=>{anchorInterrupted=false;alignInitialGroupAnchor();});
   count.textContent='Loading species inventory…';
   fetch('data/species.json').then(response=>{if(!response.ok)throw Error('Inventory unavailable');return response.json();}).then(data=>{
     if(data.schemaVersion!==1||!Array.isArray(data.records))throw Error('Invalid inventory');
     records=data.records.map(r=>({...r,searchText:normalise([r.scientificName,r.commonName,r.group,...Object.values(r.taxonomy||{}),...(r.aliases||[]),...(r.localNames||[]).flatMap(n=>[n.name,n.language,n.region])].join(' '))}));
     hierarchy=ClassificationTree.build(records);
     [...new Set(records.map(r=>r.group))].filter(g=>!filters.some(b=>b.dataset.filter===g)).forEach(g=>{const button=el('button',g,'filter');button.type='button';button.dataset.filter=g;document.querySelector('.filters').append(button);filters.push(button);bindFilter(button);});
-    ready=true;drawTree();render();
+    ready=true;drawTree();render();alignInitialGroupAnchor();
   }).catch(()=>{count.textContent='The inventory could not load. Reload the page or download the inventory below.';treeHost.replaceChildren();results.replaceChildren();empty.hidden=true;});
 })();
