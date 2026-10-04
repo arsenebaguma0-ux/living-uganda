@@ -1,4 +1,5 @@
 (() => {
+  const route=new URL(location.href);if(route.searchParams.has('group')&&!route.searchParams.get('q')){const next=new URL('phylogeny.html',location.href);next.searchParams.set('group',route.searchParams.get('group'));location.replace(next);return;}
   const search=document.querySelector('#search'), results=document.querySelector('.browse-grid');
   const filters=[...document.querySelectorAll('.filter')], count=document.querySelector('#count'), empty=document.querySelector('#empty');
   const treeHost=document.querySelector('#classification-tree'), branchLabel=document.querySelector('#classification-selection');
@@ -28,11 +29,11 @@
     });if(autoOpen)details.open=true;return details;
   }
   function drawTree() {
-    document.querySelector('#classification-title').textContent=group==='All'?'Explore the branches of life.':'Browse '+group.toLowerCase()+'.';
-    document.querySelector('#birds-tree-preview').hidden=group!=='Birds';
-    treeHost.replaceChildren();
-    ClassificationTree.children(hierarchy).filter(node=>group==='All'||node.label===group).forEach(node=>treeHost.append(branch(node,group!=='All')));
-    if(!treeHost.childElementCount){const message=el('p','No entries in this group yet.');message.id=groupAnchor(group);treeHost.append(message);}
+    document.querySelector('#classification-title').textContent=group==='All'?'Find your branch.':'Explore '+group.toLowerCase()+'.';
+    document.querySelector('#birds-tree-preview').hidden=true;treeHost.replaceChildren();
+    const grid=el('div','','classification-group-links');
+    const groups=['Birds','Mammals','Plants','Fish','Reptiles','Amphibians','Insects','Fungi','Other invertebrates','Other organisms'];
+    groups.filter(g=>group==='All'||g===group).forEach(g=>{const link=el('a',g,'classification-group-link');link.href='phylogeny.html?group='+encodeURIComponent(g);link.append(el('small','Explore its branches →'));grid.append(link);});treeHost.append(grid);
   }
   function render() {
     if(!ready)return;
@@ -42,10 +43,10 @@
     const matches=exact.length?exact:eligible.filter(r=>tokens.every(t=>r.searchText.includes(t)));
     const browsing=!query&&!selected;
     count.textContent=matches.length+' '+(query?'matching ':'')+'species currently in this catalogue';
-    branchLabel.textContent=selected?'Selected: '+selected.path.map(p=>p[0]==='species'?selected.scientificName:(p[1]||p[0]+' not recorded')).join(' → '):'Browse by recorded classification, or search directly for a name.';
+    branchLabel.textContent=selected?'Selected: '+selected.path.map(p=>p[0]==='species'?selected.scientificName:(p[1]||p[0]+' not recorded')).join(' → '):'Choose a group to explore its branches, or search directly for a name.';
     results.replaceChildren();more.replaceChildren();
     empty.hidden=browsing||matches.length!==0;
-    if(browsing)results.append(el('p','Choose a branch above to see its organisms.','classification-guide'));
+    if(browsing)results.append(el('p','Open a group to explore its relationships, or search for a common or scientific name.','classification-guide'));
     else matches.slice(0,limit).forEach(r=>{
       const card=el('article','','inventory-card');card.append(el('span',r.group+' / '+r.rank,'eyebrow'),el('h3',r.commonName||r.scientificName));
       if(r.commonName)card.append(el('p',r.scientificName,'inventory-name'));
@@ -66,7 +67,7 @@
   search.addEventListener('input',()=>{selected=null;limit=24;render();});
   document.querySelector('#search-form').addEventListener('submit',event=>{event.preventDefault();render();document.querySelector('#browse').scrollIntoView({block:'start'});});
   function syncGroupRoute(){const url=new URL(location.href);if(group==='All')url.searchParams.delete('group');else url.searchParams.set('group',group);url.hash=group==='All'?'browse':groupAnchor(group);history.replaceState(null,'',url);}
-  function bindFilter(button){button.addEventListener('click',()=>{group=button.dataset.filter;selected=null;limit=24;syncGroupRoute();drawTree();render();});}
+  function bindFilter(button){button.addEventListener('click',()=>{if(button.dataset.filter!=='All'&&!search.value.trim()){location.href='phylogeny.html?group='+encodeURIComponent(button.dataset.filter);return;}group=button.dataset.filter;selected=null;limit=24;syncGroupRoute();drawTree();render();});}
   filters.forEach(bindFilter);
   document.querySelector('#classification-clear').addEventListener('click',()=>{selected=null;limit=24;render();});
   document.querySelector('#reset').addEventListener('click',()=>{search.value='';group='All';selected=null;limit=24;syncGroupRoute();drawTree();render();search.focus();});
