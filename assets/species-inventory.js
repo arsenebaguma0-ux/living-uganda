@@ -7,7 +7,7 @@
   const normalise=value=>String(value||'').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[’']/g,'').replace(/[^a-z0-9]+/g,' ').trim();
   const more=el('div','','inventory-pagination');results.after(more);
   function choose(node) {selected=node;limit=24;render();results.scrollIntoView({block:'start',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});}
-  function branch(node) {
+  function branch(node, autoOpen=false) {
     if(node.rank==='species') {
       const button=el('button',node.label,'classification-species');button.type='button';
       if(node.label!==node.scientificName)button.append(el('small',node.scientificName));
@@ -20,12 +20,13 @@
       if(!details.open||populated)return;populated=true;
       const body=el('div','','classification-children');
       const view=el('button','View '+node.ids.length+' '+(node.ids.length===1?'organism':'organisms'),'classification-view');view.type='button';view.addEventListener('click',()=>choose(node));body.append(view);
-      ClassificationTree.children(node).forEach(child=>body.append(branch(child)));details.append(body);
-    });return details;
+      ClassificationTree.children(node).forEach(child=>body.append(branch(child,autoOpen&&node.children.size===1)));details.append(body);
+    });if(autoOpen)details.open=true;return details;
   }
   function drawTree() {
+    document.querySelector('#classification-title').textContent=group==='All'?'Explore the branches of life.':'Browse '+group.toLowerCase()+'.';
     treeHost.replaceChildren();
-    ClassificationTree.children(hierarchy).filter(node=>group==='All'||node.label===group).forEach(node=>treeHost.append(branch(node)));
+    ClassificationTree.children(hierarchy).filter(node=>group==='All'||node.label===group).forEach(node=>treeHost.append(branch(node,group!=='All')));
     if(!treeHost.childElementCount)treeHost.append(el('p','No entries in this group yet.'));
   }
   function render() {
@@ -59,10 +60,11 @@
   }
   search.addEventListener('input',()=>{selected=null;limit=24;render();});
   document.querySelector('#search-form').addEventListener('submit',event=>{event.preventDefault();render();document.querySelector('#browse').scrollIntoView({block:'start'});});
-  function bindFilter(button){button.addEventListener('click',()=>{group=button.dataset.filter;selected=null;limit=24;drawTree();render();});}
+  function syncGroupRoute(){const url=new URL(location.href);if(group==='All')url.searchParams.delete('group');else url.searchParams.set('group',group);url.hash='browse';history.replaceState(null,'',url);}
+  function bindFilter(button){button.addEventListener('click',()=>{group=button.dataset.filter;selected=null;limit=24;syncGroupRoute();drawTree();render();});}
   filters.forEach(bindFilter);
   document.querySelector('#classification-clear').addEventListener('click',()=>{selected=null;limit=24;render();});
-  document.querySelector('#reset').addEventListener('click',()=>{search.value='';group='All';selected=null;limit=24;drawTree();render();search.focus();});
+  document.querySelector('#reset').addEventListener('click',()=>{search.value='';group='All';selected=null;limit=24;syncGroupRoute();drawTree();render();search.focus();});
   // Restore a group anchor after the asynchronous inventory changes page height.
   // Stop correcting once the visitor starts interacting with this page.
   let anchorInterrupted=false;
@@ -71,7 +73,7 @@
   function alignInitialGroupAnchor(){
     if(anchorInterrupted||!ready)return;
     const id=location.hash.slice(1);
-    if(!['plants-world','birds-world','mammals-world','small-world','fungi-world','fish-world','amphibians-world','reptiles-world'].includes(id))return;
+    if(!['browse','plants-world','birds-world','mammals-world','small-world','fungi-world','fish-world','amphibians-world','reptiles-world'].includes(id))return;
     requestAnimationFrame(()=>{if(!anchorInterrupted)document.getElementById(id)?.scrollIntoView({block:'start',behavior:'instant'});});
   }
   addEventListener('load',alignInitialGroupAnchor);
@@ -82,6 +84,8 @@
     records=data.records.map(r=>({...r,searchText:normalise([r.scientificName,r.commonName,r.group,...Object.values(r.taxonomy||{}),...(r.aliases||[]),...(r.localNames||[]).flatMap(n=>[n.name,n.language,n.region])].join(' '))}));
     hierarchy=ClassificationTree.build(records);
     [...new Set(records.map(r=>r.group))].filter(g=>!filters.some(b=>b.dataset.filter===g)).forEach(g=>{const button=el('button',g,'filter');button.type='button';button.dataset.filter=g;document.querySelector('.filters').append(button);filters.push(button);bindFilter(button);});
+    const requestedGroup=new URLSearchParams(location.search).get('group');
+    if(requestedGroup&&filters.some(button=>button.dataset.filter===requestedGroup))group=requestedGroup;
     ready=true;drawTree();render();alignInitialGroupAnchor();
   }).catch(()=>{count.textContent='The inventory could not load. Reload the page or download the inventory below.';treeHost.replaceChildren();results.replaceChildren();empty.hidden=true;});
 })();
